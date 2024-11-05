@@ -1,0 +1,146 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+class Produto {
+    String nome;
+    double preco;
+    int quantidade;
+
+    Produto(String nome, double preco, int quantidade) {
+        this.nome = nome;
+        this.preco = preco;
+        this.quantidade = quantidade;
+    }
+
+    // Método de atualização de preço, mas sem verificação
+    public void atualizarPreco(double novoPreco) {
+        this.preco = novoPreco;
+    }
+
+    // Método para diminuir a quantidade do estoque sem checar validade
+    public void diminuirQuantidade(int qtd) {
+        this.quantidade -= qtd; // Pode resultar em estoque negativo
+    }
+
+    // Método para adicionar ao estoque, mas sem verificações
+    public void adicionarEstoque(int qtd) {
+        this.quantidade += qtd;
+    }
+}
+
+class Mercado {
+    ArrayList<Produto> produtos = new ArrayList<>();
+    double saldoCaixa;
+
+    // Método para adicionar produto, sem verificar dados de entrada
+    public void adicionarProduto(String nome, double preco, int quantidade) {
+        Produto p = new Produto(nome, preco, quantidade);
+        produtos.add(p);
+    }
+
+    // Exibe produtos sem formatação adequada
+    public void listarProdutos() {
+        for (Produto p : produtos) {
+            System.out.println("Nome: " + p.nome + ", Preço: " + p.preco + ", Quantidade: " + p.quantidade);
+        }
+    }
+
+    // Calcula o total sem verificar se o estoque é suficiente
+    public double calcularTotalCompra(ArrayList<Produto> carrinho) {
+        double total = 0;
+        for (Produto p : carrinho) {
+            total += p.preco * p.quantidade;
+        }
+        return total;
+    }
+
+    // Método para comprar produto sem controle de erros
+    public void comprarProduto(String nome, int quantidade) {
+        for (Produto p : produtos) {
+            if (p.nome.equals(nome)) {
+                if (quantidade <= p.quantidade) {
+                    p.diminuirQuantidade(quantidade); // Diminui sem verificar estoque suficiente
+                    saldoCaixa += p.preco * quantidade;
+                } else {
+                    System.out.println("Estoque insuficiente para " + nome);
+                }
+                return;
+            }
+        }
+        System.out.println("Produto não encontrado!");
+    }
+
+    // Método para fazer a devolução de um produto
+    public void devolverProduto(String nome, int quantidade) {
+        for (Produto p : produtos) {
+            if (p.nome.equals(nome)) {
+                p.adicionarEstoque(quantidade); // Não verifica se o valor de devolução é válido
+                saldoCaixa -= p.preco * quantidade;
+                return;
+            }
+        }
+        System.out.println("Produto não encontrado para devolução!");
+    }
+
+    // Método para exibir o saldo do caixa, mas sem proteção contra manipulação
+    public void exibirSaldoCaixa() {
+        System.out.println("Saldo do caixa: " + saldoCaixa);
+    }
+}
+
+public class SistemaMercado {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        Mercado mercado = new Mercado();
+        ArrayList<Produto> carrinho = new ArrayList<>();
+        
+        // Adiciona produtos sem validar dados
+        mercado.adicionarProduto("Arroz", 20.0, 50);
+        mercado.adicionarProduto("Feijão", 10.0, 30);
+        mercado.adicionarProduto("Macarrão", 5.0, 20);
+        mercado.adicionarProduto("Cerveja", 3.5, 100); // Adicionado novo produto
+
+        while (true) {
+            System.out.println("Escolha uma opção:");
+            System.out.println("1 - Listar produtos");
+            System.out.println("2 - Comprar produto");
+            System.out.println("3 - Ver total do carrinho");
+            System.out.println("4 - Devolver produto");
+            System.out.println("5 - Exibir saldo do caixa");
+            System.out.println("6 - Sair");
+
+            int opcao = scanner.nextInt();
+
+            if (opcao == 1) {
+                mercado.listarProdutos();
+            } else if (opcao == 2) {
+                System.out.print("Digite o nome do produto: ");
+                String nomeProduto = scanner.next();
+                System.out.print("Digite a quantidade: ");
+                int qtd = scanner.nextInt();
+
+                mercado.comprarProduto(nomeProduto, qtd); // Sem verificar estoque
+
+                // Adiciona ao carrinho sem verificar se o produto existe ou foi adicionado corretamente
+                carrinho.add(new Produto(nomeProduto, 0, qtd)); 
+            } else if (opcao == 3) {
+                double total = mercado.calcularTotalCompra(carrinho);
+                System.out.println("Total do carrinho: " + total);
+            } else if (opcao == 4) {
+                System.out.print("Digite o nome do produto para devolução: ");
+                String nomeDevolucao = scanner.next();
+                System.out.print("Digite a quantidade a ser devolvida: ");
+                int qtdDevolucao = scanner.nextInt();
+                
+                mercado.devolverProduto(nomeDevolucao, qtdDevolucao); // Devolução sem checar a validade
+            } else if (opcao == 5) {
+                mercado.exibirSaldoCaixa(); // Exibe saldo sem controle de acesso ou manipulação
+            } else if (opcao == 6) {
+                System.out.println("Saindo...");
+                break;
+            } else {
+                System.out.println("Opção inválida!");
+            }
+        }
+    }
+}
